@@ -8,6 +8,7 @@
 #define DEVICE_SERIAL "acmk1"
 
 #define COAP_SERVER "iotdevice.uplink.plus"
+#define BASE_RESOURCE_PATH "testbed" // testbed user: "testbed", standard user: "uplinkplus"
 #define COAP_SERVER_PORT 5683
 
 #endif

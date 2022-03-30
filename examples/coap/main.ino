@@ -8,12 +8,6 @@ unsigned long lastMillis = 0;
 // Callback function for messages from the server
 void messageReceived(coapPacket &packet, IPAddress ip, int port)
 {
-  if (packet.code != CHANGED)
-  {
-    // Serial.println(payload);
-    return;
-  }
-
   char payload[packet.payloadlen + 1];
   memcpy(payload, packet.payload, packet.payloadlen);
   payload[packet.payloadlen] = 0;
@@ -31,8 +25,8 @@ void messageReceived(coapPacket &packet, IPAddress ip, int port)
     return;
   }
 
-  const char *cmd_type = doc["type"];
-  const char *cmd_value = doc["value"];
+  const char *cmd_type = doc["command_type"];
+  const char *cmd_value = doc["command_value"];
   Serial.printf("Command Type: %s, Command Value: %s\n\r", cmd_type, cmd_value);
 
   // Your Code Here

@@ -12,15 +12,13 @@
 
 struct UplinkCoap
 {
-  char keySerial[100];
+  char resourcePath[100];
 
-  IPAddress ip;
   CoapClient coap;
 
-  void connect(callback messageReceived)
+  void connect(callback messageReceived = NULL)
   {
-    sprintf(keySerial, "%s%s", API_KEY, DEVICE_SERIAL);
-    ip.fromString(COAP_SERVER_IP);
+    sprintf(resourcePath, "%s/%s%s", BASE_RESOURCE_PATH, API_KEY, DEVICE_SERIAL);
 
     WiFi.begin(WIFI_SSID, WIFI_PASS);
     Serial.print(F("checking wifi..."));
@@ -37,7 +35,8 @@ struct UplinkCoap
     coap.response(messageReceived);
 
     // start coap client
-    coap.start(COAP_SERVER, COAP_SERVER_PORT);
+    coap.start(COAP_SERVER, COAP_SERVER_PORT, resourcePath);
+    coap.subscribe();
   }
 
   void loop()
@@ -58,10 +57,9 @@ struct UplinkCoap
     serializeJson(payloadJson, payload);
 
     // send observtion request
-    coap.observe("cmnd", OBSERVE_REGISTER, keySerial);
-    delay(1000);
+    coap.observe();
     // message sent to server
-    coap.post("stat", payload, strlen(payload));
+    coap.post(payload);
 
     Serial.println(F("[Message Sent]"));
     Serial.println(payload);

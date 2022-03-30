@@ -19,8 +19,8 @@ void messageReceived(MQTTClient *client, char *topic, char *payload, int length)
     return;
   }
 
-  const char *cmd_type = doc["type"];
-  const char *cmd_value = doc["value"];
+  const char *cmd_type = doc["command_type"];
+  const char *cmd_value = doc["command_value"];
   Serial.printf("Command Type: %s, Command Value: %s\n\r", cmd_type, cmd_value);
 
   // Your Code Here

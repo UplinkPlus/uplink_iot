@@ -6,18 +6,18 @@
 #define OBSERVE_REGISTER 0
 #define OBSERVE_DEREGISTER 1
 
-//current coap attributes
+// current coap attributes
 #define COAP_DEFAULT_PORT 5683
 #define COAP_HEADER_SIZE 4
 #define COAP_VERSION 1
 
-//configuration
+// configuration
 #define MAX_OPTION_NUM 10
 #define BUF_MAX_SIZE 250
 
 #define COAP_OPTION_DELTA(v, n) (v < 13 ? (*n = (0xFF & v)) : (v <= 0xFF + 13 ? (*n = 13) : (*n = 14)))
 
-//coap message types
+// coap message types
 typedef enum
 {
   COAP_CON = 0,
@@ -26,7 +26,7 @@ typedef enum
   COAP_RESET = 3
 } COAP_TYPE;
 
-//coap method values
+// coap method values
 typedef enum
 {
   COAP_EMPTY = 0,
@@ -36,7 +36,7 @@ typedef enum
   COAP_DELETE = 4
 } COAP_METHOD;
 
-//coap option values
+// coap option values
 typedef enum
 {
   COAP_IF_MATCH = 1,
@@ -57,7 +57,7 @@ typedef enum
   COAP_PROXY_SCHEME = 39
 } COAP_OPTION_NUMBER;
 
-//coap code values
+// coap code values
 typedef enum
 {
   CREATED = 65,
@@ -83,7 +83,7 @@ typedef enum
   PROXYING_NOT_SUPPORTED = 165
 } COAP_CODE_NUMBER;
 
-//coap option class
+// coap option class
 class coapOption
 {
 public:
@@ -92,7 +92,7 @@ public:
   uint8_t *buffer;
 };
 
-//coap packet class
+// coap packet class
 class coapPacket
 {
 public:
@@ -114,72 +114,81 @@ struct CoapClient
   IPAddress ip;
   const char *hostName = nullptr;
   int port;
+  const char *url = nullptr;
+
   WiFiUDP udp;
   callback resp;
 
-  //coap client begin
-  bool start(IPAddress ip, int port)
+  // coap client begin
+  bool start(IPAddress ip, int port, const char url[])
   {
     this->ip = ip;
     this->port = port;
+    this->url = strdup(url);
     udp.begin(port);
     return true;
   }
 
-  //coap client begin
-  bool start(const char hostName[], int port)
+  // coap client begin
+  bool start(const char hostName[], int port, const char url[])
   {
     // set hostname and port
     this->hostName = strdup(hostName);
     this->port = port;
+    this->url = strdup(url);
     udp.begin(port);
     return true;
   }
 
-  //get request
-  uint16_t get(const char *url)
+  // get request
+  uint16_t get()
   {
-    return send(url, COAP_CON, COAP_GET, NULL, 0, NULL, 0, 0, 0, NULL);
+    return send(COAP_CON, COAP_GET, "");
   }
 
-  //put request
-  uint16_t put(const char *url, char *payload, int payloadlen)
+  // put request
+  uint16_t put(const char *payload)
   {
-    return send(url, COAP_CON, COAP_PUT, NULL, 0, (uint8_t *)payload, payloadlen, 0, 0, NULL);
+    return send(COAP_CON, COAP_PUT, payload);
   }
 
-  //post request
-  uint16_t post(const char *url, char *payload, int payloadlen)
+  // post request
+  uint16_t post(const char *payload)
   {
-    return send(url, COAP_CON, COAP_POST, NULL, 0, (uint8_t *)payload, payloadlen, 0, 0, NULL);
+    return send(COAP_CON, COAP_POST, payload);
   }
 
-  //observe request
-  uint16_t observe(const char *url, uint8_t optionbuffer, char *query)
+  uint16_t subscribe()
+  {
+    return send(COAP_CON, COAP_PUT, "");
+  }
+
+  // observe request
+  uint16_t observe()
   {
     uint8_t token = rand();
-    return send(url, COAP_NONCON, COAP_GET, &token, sizeof(token), NULL, 0, COAP_OBSERVE, optionbuffer, query);
+    return send(COAP_CON, COAP_GET, "", COAP_OBSERVE, &token);
   }
 
-  uint16_t send(const char *url, COAP_TYPE type, COAP_METHOD method, uint8_t *token, uint8_t tokenlen, uint8_t *payload, uint32_t payloadlen, uint8_t number, uint8_t optionbuffer, char *query)
+  uint16_t send(COAP_TYPE type, COAP_METHOD method, const char *payload, uint8_t observe = 0, uint8_t *token = NULL)
   {
     coapPacket packet;
 
-    //make packet
+    // make packet
     packet.type = type;
     packet.code = method;
     packet.token = token;
-    packet.tokenlen = tokenlen;
-    packet.payload = payload;
-    packet.payloadlen = payloadlen;
+    packet.tokenlen = token == NULL ? 0 : sizeof(uint8_t);
+    packet.payload = (uint8_t *)payload;
+    packet.payloadlen = (uint32_t)strlen(payload);
     packet.optionnum = 0;
     packet.messageid = rand();
 
-    if (number)
+    if (observe)
     {
-      packet.options[packet.optionnum].buffer = &optionbuffer;
+      packet.options[packet.optionnum].buffer = OBSERVE_REGISTER;
       packet.options[packet.optionnum].length = 0;
-      packet.options[packet.optionnum].number = number;
+      packet.options[packet.optionnum].number = observe;
       packet.optionnum++;
     }
 
@@ -192,13 +201,6 @@ struct CoapClient
       packet.optionnum++;
     }
 
-    if (query)
-    {
-      packet.options[packet.optionnum].buffer = (uint8_t *)query;
-      packet.options[packet.optionnum].length = strlen(query);
-      packet.options[packet.optionnum].number = COAP_URI_QUERY;
-      packet.optionnum++;
-    }
     // send packet
     return sendPacket(packet);
   }
@@ -288,7 +290,6 @@ struct CoapClient
 
     if (this->hostName != nullptr)
     {
-      Serial.println(this->hostName);
       udp.beginPacket(this->hostName, (uint16_t)this->port);
     }
     else
@@ -362,18 +363,30 @@ struct CoapClient
         }
       }
 
-      if (packet.type == COAP_ACK || packet.type == COAP_RESET || packet.type == COAP_NONCON)
+      // when the server is restarted, re-subscibe
+      if (packet.code == NOT_FOUND && packet.type == COAP_ACK)
+      {
+        subscribe();
+      }
+      // handle incoming data from server
+      else if (packet.code == CONTENT && packet.type == COAP_CON && packet.payloadlen > 0)
       {
         // call response function
         resp(packet, udp.remoteIP(), udp.remotePort());
-      }
 
+        packet.type = COAP_ACK;
+        packet.code = COAP_EMPTY;
+        packet.payload = NULL;
+        packet.payloadlen = 0;
+        packet.optionnum = 0;
+        sendPacket(packet);
+      }
       return true;
     }
     return false;
   }
 
-  //parse option
+  // parse option
   int parseOption(coapOption *option, uint16_t *running_delta, uint8_t **buf, size_t buflen)
   {
     uint8_t *p = *buf;
