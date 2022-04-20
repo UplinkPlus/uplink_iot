@@ -7,10 +7,10 @@ This example shows how a device(sensor, actuator, switch, etc.) can be connected
 
 1. MCU Device: ESP32
 2. IDE: Arduino IDE (or VSCode+PlatformIO Home)
-3. Library: [ArduinoJson](https://arduinojson.org/v6/doc/), [256dpi/MQTT by Joerg Wende](https://github.com/256dpi/arduino-mqtt?utm_source=platformio&utm_medium=piohome)
+3. Library: [ArduinoJson](https://arduinojson.org/v6/doc/), [MQTT by Joel Gaehwiler](https://github.com/256dpi/arduino-mqtt)
 
 ## How to install Library?
-- Search Keyword: ArduinoJso, MQTT lwmqttn
+- Search Keyword: ArduinoJson, MQTT
 - [Installing Libraries in Arduino.cc IDE](https://docs.arduino.cc/software/ide-v1/tutorials/installing-libraries):
 - [Installing Libraries in PlatformIO](https://docs.platformio.org/en/latest/librarymanager/index.html):
 

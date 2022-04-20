@@ -7,10 +7,10 @@
 
 1. MCU Device: ESP32
 2. IDE: Arduino IDE (or VSCode+PlatformIO Home)
-3. 라이브러리: [ArduinoJson](https://arduinojson.org/v6/doc/), [256dpi/MQTT by Joerg Wende](https://github.com/256dpi/arduino-mqtt?utm_source=platformio&utm_medium=piohome)
+3. 라이브러리: [ArduinoJson](https://arduinojson.org/v6/doc/), [MQTT by Joel Gaehwiler](https://github.com/256dpi/arduino-mqtt)
 
 ## 라이브러리 설치방법
-- 검색 키워드: ArduinoJso, MQTT lwmqttn
+- 검색 키워드: ArduinoJson, MQTT
 - [Installing Libraries in Arduino.cc IDE](https://docs.arduino.cc/software/ide-v1/tutorials/installing-libraries):
 - [Installing Libraries in PlatformIO](https://docs.platformio.org/en/latest/librarymanager/index.html):
 
