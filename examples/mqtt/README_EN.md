@@ -20,7 +20,7 @@ This example shows how a device(sensor, actuator, switch, etc.) can be connected
 ### Step2: You can download uplink+ libraries on the last page of adding device page or if you already added the device,  go to the edit page of the device and download Uplink+ libraries for your device.
 
 ### Step3: Edit below files
-#### uplnik_mqtt_settings.h
+#### uplink_mqtt_settings.h
 - Edit WIFI_SSID, WIFI_PASS values
 
 ### Step4: Create your main.ino
